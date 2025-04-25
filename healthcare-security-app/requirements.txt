@@ -1,0 +1,7 @@
+Flask
+Faker
+pandas
+matplotlib
+sqlite3
+random
+datetime

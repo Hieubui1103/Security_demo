@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>User Access Portal</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <style>
+        .top-right { position: absolute; top: 20px; right: 30px; }
+        .modal-backdrop { z-index: 1040 !important; }
+        .modal-content { z-index: 1100 !important; }
+    </style>
+    <script>
+    function updateActionOptions() {
+        var role = document.getElementById("user_role").value;
+        var actionSelect = document.getElementById("action");
+        actionSelect.innerHTML = "";
+        if (role === "researcher") {
+            var opt = document.createElement("option");
+            opt.value = "read";
+            opt.text = "read";
+            actionSelect.appendChild(opt);
+        } else {
+            ["read", "write", "delete"].forEach(function(act) {
+                var opt = document.createElement("option");
+                opt.value = act;
+                opt.text = act;
+                actionSelect.appendChild(opt);
+            });
+        }
+    }
+    window.onload = updateActionOptions;
+    </script>
+</head>
+<body class="container mt-4">
+    <div class="top-right">
+        {% if not authenticated %}
+            <button class="btn btn-outline-primary" onclick="showModal()">Sign In</button>
+        {% else %}
+            <a href="{{ url_for('logout') }}" class="btn btn-outline-danger">Sign Out</a>
+        {% endif %}
+    </div>
+    <h2>Patient Data Access</h2>
+    <form method="post" class="mb-3">
+        <div class="mb-2">
+            <label>User ID:
+                {% if authenticated and signed_in_id %}
+                    <select class="form-control" disabled>
+                        <option selected>{{ signed_in_id }}</option>
+                    </select>
+                    <input type="hidden" name="user_id" value="{{ signed_in_id }}">
+                {% else %}
+                    <input type="text" name="user_id" value="{{ user_id }}" required class="form-control">
+                {% endif %}
+            </label>
+        </div>
+        <div class="mb-2">
+            <label>User Role:
+                {% if authenticated and signed_in_role %}
+                    <select name="user_role" id="user_role" disabled class="form-control">
+                        <option value="{{ signed_in_role }}" selected>{{ signed_in_role.capitalize() }}</option>
+                    </select>
+                    <input type="hidden" name="user_role" value="{{ signed_in_role }}">
+                {% else %}
+                    <select name="user_role" id="user_role" onchange="updateActionOptions()" required class="form-control">
+                        <option value="doctor" {% if user_role == "doctor" %}selected{% endif %}>Doctor</option>
+                        <option value="admin" {% if user_role == "admin" %}selected{% endif %}>Admin</option>
+                        <option value="nurse" {% if user_role == "nurse" %}selected{% endif %}>Nurse</option>
+                        <option value="researcher" {% if user_role == "researcher" %}selected{% endif %}>Researcher</option>
+                    </select>
+                {% endif %}
+            </label>
+        </div>
+        <div class="mb-2">
+            <label>Action:
+                <select name="action" id="action" required class="form-control">
+                    <!-- Options will be populated by JS -->
+                </select>
+            </label>
+        </div>
+        <div class="mb-2">
+            <label>Patient ID:
+                <input type="number" name="patient_id" min="1" max="100" value="{{ patient_id }}" required class="form-control">
+            </label>
+        </div>
+        <button type="submit" class="btn btn-primary">Access</button>
+        <button type="button" class="btn btn-warning" onclick="simulateHighAccess()">Simulate High Access Anomaly</button>
+    </form>
+    <h5>Access Type: {{ access_type }}</h5>
+    {{ data|safe }}
+    {% if error %}
+        <div class="alert alert-danger">{{ error }}</div>
+    {% endif %}
+
+    <!-- Sign In Modal -->
+    <div class="modal" tabindex="-1" id="loginModal" style="display:none;">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <form id="loginForm">
+            <div class="modal-header">
+              <h5 class="modal-title">Sign In</h5>
+              <button type="button" class="btn-close" onclick="hideModal()"></button>
+            </div>
+            <div class="modal-body">
+              <div id="loginError" class="alert alert-danger" style="display:none;"></div>
+              <div class="mb-3">
+                <label>User ID:</label>
+                <input type="text" class="form-control" name="user_id" required>
+              </div>
+              <div class="mb-3">
+                <label>User Role:</label>
+                <select class="form-control" name="user_role" required>
+                  <option value="doctor">Doctor</option>
+                  <option value="admin">Admin</option>
+                </select>
+              </div>
+              <div class="mb-3">
+                  <label>Authentication Key:</label>
+                  <input type="password" class="form-control" name="auth_key" required>
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" onclick="hideModal()">Close</button>
+              <button type="submit" class="btn btn-primary">Sign In</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <script>
+    function showModal() {
+        document.getElementById('loginModal').style.display = 'block';
+        document.body.classList.add('modal-open');
+    }
+    function hideModal() {
+        document.getElementById('loginModal').style.display = 'none';
+        document.getElementById('loginError').style.display = 'none';
+        document.body.classList.remove('modal-open');
+    }
+    document.getElementById('loginForm').onsubmit = function(e) {
+        e.preventDefault();
+        var formData = new FormData(this);
+        fetch("/login", {
+            method: "POST",
+            body: formData
+        }).then(resp => resp.json()).then(data => {
+            if(data.success) {
+                window.location.reload();
+            } else {
+                var err = document.getElementById('loginError');
+                err.innerText = data.message;
+                err.style.display = 'block';
+            }
+        });
+    }
+    function simulateHighAccess() {
+        fetch("/simulate_high_access", {method: "POST"})
+            .then(resp => resp.json())
+            .then(data => {
+                alert(data.message);
+            });
+    }
+    </script>
+</body>
+</html>
