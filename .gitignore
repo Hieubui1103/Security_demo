@@ -1,2 +1,2 @@
 *.env
-**/healthcare.db
+healthcare-security-app\healthcare.db

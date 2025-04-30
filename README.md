@@ -48,12 +48,20 @@ healthcare-security-app
      ```
      Access the application at `http://127.0.0.1:5000`.
 
+     The user application should look like this: 
+
+     ![alt text](image.png)
+
    - For the monitoring application:
      ```
      cd monitor_app
      python app.py
      ```
      Access the monitoring dashboard at `http://127.0.0.1:5001`.
+
+     The monitoring application should look like this: 
+
+     ![alt text](image-1.png)
 
 ## Usage Guidelines
 
@@ -64,3 +72,4 @@ healthcare-security-app
 ## License
 
 This project is licensed under the MIT License. See the LICENSE file for more details.
+
