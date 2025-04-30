@@ -12,6 +12,7 @@
     function updateActionOptions() {
         var role = document.getElementById("user_role").value;
         var actionSelect = document.getElementById("action");
+        var currentAction = "{{ action|default('read') }}";
         actionSelect.innerHTML = "";
         if (role === "researcher") {
             var opt = document.createElement("option");
@@ -26,9 +27,15 @@
                 actionSelect.appendChild(opt);
             });
         }
+        // Set the selected value after populating
+        actionSelect.value = currentAction;
     }
-    window.onload = updateActionOptions;
+
+    window.onload = function() {
+        updateActionOptions();
+    };
     </script>
+
 </head>
 <body class="container mt-4">
     <div class="top-right">

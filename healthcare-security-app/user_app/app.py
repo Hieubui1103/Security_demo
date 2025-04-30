@@ -53,7 +53,7 @@ def verify_user_access(user_id, user_role):
 def log_access(user_id, user_role, action, patient_id, access_range):
     conn = sqlite3.connect("../healthcare.db")
     cursor = conn.cursor()
-    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    timestamp = datetime.now().replace(hour=20).strftime("%Y-%m-%d %H:%M:%S")
     cursor.execute("""
         INSERT INTO access_logs (user_id, user_role, timestamp, action, patient_id, access_range)
         VALUES (?, ?, ?, ?, ?, ?)
@@ -113,6 +113,7 @@ def index():
                     patient_id=patient_id,
                     authenticated=full_access,
                     signed_in_role=signed_in_role,
+                    signed_in_id=signed_in_id
                 )
     # GET or error: show nothing or empty table
     data = ""
@@ -163,11 +164,13 @@ def simulate_high_access():
     else:
         user_id = str(random.randint(5000, 6999))
         user_role = "admin"
-
+    
+    ran_hour = random.randint(9,17)
+    ran_minute = random.randint(0,59)
     for _ in range(60):
         time_increment = timedelta(seconds=random.uniform(0.5, 1.5))
         current_time += time_increment
-        timestamp = current_time.replace(hour=10, minute=19).strftime("%Y-%m-%d %H:%M:%S")
+        timestamp = (current_time - timedelta(seconds=30)).strftime("%Y-%m-%d %H:%M:%S")
         action = "read"
         patient_id = random.randint(1, 100)
         access_range = "full"
